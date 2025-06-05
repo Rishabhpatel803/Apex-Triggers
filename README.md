@@ -1,18 +1,40 @@
-# Salesforce DX Project: Next Steps
+## Following are the Apex Trigger Scenarios
 
-Now that you’ve created a Salesforce DX project, what’s next? Here are some documentation resources to get you started.
-
-## How Do You Plan to Deploy Your Changes?
-
-Do you want to deploy a set of changes, or create a self-contained application? Choose a [development model](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models).
-
-## Configure Your Salesforce DX Project
-
-The `sfdx-project.json` file contains useful configuration information for your project. See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_ for details about this file.
-
-## Read All About It
-
-- [Salesforce Extensions Documentation](https://developer.salesforce.com/tools/vscode/)
-- [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
-- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_intro.htm)
-- [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm)
+| No. | Trigger Object       | Description | Link |
+|-----|----------------------|-------------|------|
+| 1 | Contact | Write a trigger on Contact , when a contact insert an email should be sent to contact email id with specified template. So first you need to create text template. Template Design is below. | [Contact Trigger](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/triggers/ContactCreationTrigger.trigger), [Contact Trigger Handler](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/classes/ContactCreateTriggerHandler.cls)|
+| 2 | Contact | Write a trigger on contact to prevent duplicate records based on Contact Email & Contact Phone. | [Link]() |
+| 3 | Task | Write a trigger, only system admin user should be able to delete the task. | [Link]() |
+| 4 | Account | Write a trigger on Account , when an account insert , automatically account billing address should populate into the account shipping address. | [Link]() |
+| 5 | Opportunity | Write a trigger on Opportunity, when an Opportunity will be insert an Opportunity Line Item should be insert by default with any of the Product associated with Opportunity. Ask me if you need help ? | [Link]() |
+| 6 | Lead | Create a duplicate lead when a lead in insert. | [Link]() |
+| 7 | Account | Write a trigger on Account when Account is update check all opportunity inside the account. Update all Opportunities Stage to close lost if an opportunity created date is greater than 30 days from today and stage not equal to close won. | [Link]() |
+| 8 | OpportunityLineItem | Create an asset when create an OpportunityLineItem with associated Account | [Link]() |
+| 9 | Account | Create a field on Account Named (Client Contact lookup to Contact). Once an account insert a contact will create with the name of account and that contact will be the client contact on Account | [Link]() |
+| 10 | OpportunityLineItem | When an opportunity line item create an email should go to Opportunity Account | [Link]() |
+| 11 | Account | Once an account an email should go to the admin user with specified text below. "An account has been created and name is 'Account Name'" | [Link]() |
+| 12 | OpportunityLineItem | Once an opportunity line item will create update Opportunity's Account with the total number of Product Quantities. | [Link]() |
+| 13 | Account | Once an account will update then that Account will update with the total amount from All Opportunities on Account level. Field: Total Opportunity Amount | [Link]() |
+| 14 | Lead | Upload any pdf file into Document first. Send an email as attachment to lead email Id. Email Subject: Welcome | [Link]() |
+| 15 | Account | Write a trigger on Account when an account is update when account type change send email to all contacts that your account information has been change. | [Link]() |
+| 16 | OpportunityLineItem | Write a trigger on Opportunity line item when a line item deletes delete an opportuntiy as well | [Link]() |
+| 17 | Account | Write a trigger on Opportunity when an account is update when Opportunity Stage Change send email to Client contacts of Opportunity Account. | [Link]() |
+| 18 | OpportunityLineItem | Once an Opportunity line item will create insert a quotation also | [Link]() |
+| 19 | Account | Create a fields on Account (Asset Minimum Expiration Date). Check the UsageEndDate on Asset and populate on Account Level Field if Asset minimum date are different | [Link]() |
+| 20 | Opportunity | Collect All Line Item Quantities and Populate the total on Account Level (Total Quantity) | [Link]() |
+| 21 | Contact | When Contact update collect all opportunity Amount And Update this amount on Account Level Field (Total Opportunity Amount) | [Link]() |
+| 22 | Account | Once a Account update, all Opportunities line item list should be copy is account assets with the same products | [Link]() |
+| 23 | OpportunityLineItem | Create an asset when create an OpportunityLineItem with associated Account | [Link]() |
+| 24 | Account | When an account BillingCity is update , update all contacts MailingCity with account BillingCity | [Link]() |
+| 25 | Opportunity | Create a fields on Opportunity Client Contact, Once an Opportunity client Contact update then update Account client contact with same on Opportunity Client Contact | [Link]() |
+| 26 | OpportunityLineItem | Create a field on Opportunity Line item (Serial No) and populate increment values once an Opportunity Line Item Add | [Link]() |
+| 27 | QuoteLineItem | Create a field on Quote Line item (Serial No) and populate increment values once a Quote Line Item is added | [Link]() |
+| 28 | Contact | Do account private by default first, Once create an account that account should be share with another user also | [Link]() |
+| 29 | OpportunityLineItem | Once Opportunity Line Item is added to Opportunity with the specified product, deduct Product Total Quantities from Product Object | [Link]() |
+| 30 | Student | Create a custom object Student, and do Private OWD, Once A student record create, automatically share with another user from profile Salesforce User | [Link]() |
+| 31 | Asset | Write a trigger on Asset: Once an asset is inserted in Account, create one Opportunity and one Opportunity Line Item for that Account | [Link]() |
+| 32 | User | Once a user is updated, send an email to Manager with total number of Accounts owned and contacts within each | [Link]() |
+| 33 | Account | Create a field on User Object "Count". On Account update increment 1, on delete decrement 1 | [Link]() |
+| 34 | Product2 | Write a trigger on Opportunity line item. Add picklist values in Product Family and Product Type. Validate Product Family matches Opportunity Product Type | [Link]() |
+| 35 | Opportunity | Create fields on Account and Opportunity: Minimum and Max Date. Update on Opportunity delete/insert/update | [Link]() |
+| 36 | Opportunity | Add multi-select picklist on Account and Opportunity with values A,B,C,D,F. Sync changes from Opportunity to Account | [Link]() |
