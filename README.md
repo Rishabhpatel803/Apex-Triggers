@@ -3,7 +3,7 @@
 | No. | Trigger Object       | Description | Link |
 |-----|----------------------|-------------|------|
 | 1 | Contact | Write a trigger on Contact , when a contact insert an email should be sent to contact email id with specified template. So first you need to create text template. Template Design is below. | [Contact Trigger](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/triggers/ContactCreationTrigger.trigger), [Contact Trigger Handler](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/classes/ContactCreateTriggerHandler.cls)|
-| 2 | Contact | Write a trigger on contact to prevent duplicate records based on Contact Email & Contact Phone. | [Link]() |
+| 2 | Contact | Write a trigger on contact to prevent duplicate records based on Contact Email & Contact Phone. | [ContactDuplicateTrigger](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/triggers/ContactDuplicateTrigger.trigger), [ContactDuplicateTriggerHandler](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/classes/ContactDuplicateTriggerHandler.cls) |
 | 3 | Task | Write a trigger, only system admin user should be able to delete the task. | [Link]() |
 | 4 | Account | Write a trigger on Account , when an account insert , automatically account billing address should populate into the account shipping address. | [Link]() |
 | 5 | Opportunity | Write a trigger on Opportunity, when an Opportunity will be insert an Opportunity Line Item should be insert by default with any of the Product associated with Opportunity. Ask me if you need help ? | [Link]() |
