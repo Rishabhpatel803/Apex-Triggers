@@ -1,4 +1,4 @@
-## Following are the Apex Trigger Scenarios
+## Apex Trigger Scenarios
 
 | No. | Trigger Object       | Description | Link |
 |-----|----------------------|-------------|------|
@@ -8,7 +8,7 @@
 | 4 | Account | Write a trigger on Account , when an account insert , automatically account billing address should populate into the account shipping address. | [AccountTrigger](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/triggers/AccountTrigger.trigger), [AccountTriggerHandler](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/classes/AccountTriggerHandler.cls) |
 | 5 | Opportunity | Write a trigger on Opportunity, when an Opportunity will be insert an Opportunity Line Item should be insert by default with any of the Product associated with Opportunity. | [OpportunityTrigger](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/triggers/OpportunityTrigger.trigger), [OpportunityTriggerHandler](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/classes/OpportunityTriggerHandler.cls) |
 | 6 | Lead | Create a duplicate lead when a lead in insert. | [LeadTrigger](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/triggers/LeadTrigger.trigger), [LeadTriggerHanlder](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/classes/LeadTriggerHanlder.cls) |
-| 7 | Account | Write a trigger on Account when Account is update check all opportunity inside the account. Update all Opportunities Stage to close lost if an opportunity created date is greater than 30 days from today and stage not equal to close won. | [Link]() |
+| 7 | Account | Write a trigger on Account when Account is update check all opportunity inside the account. Update all Opportunities Stage to close lost if an opportunity created date is greater than 30 days from today and stage not equal to close won. | [AccountTrigger](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/triggers/AccountTrigger.trigger), [AccountTriggerHandler](https://github.com/Rishabhpatel803/Apex-Triggers/blob/main/force-app/main/default/classes/AccountTriggerHandler.cls) |
 | 8 | OpportunityLineItem | Create an asset when create an OpportunityLineItem with associated Account | [Link]() |
 | 9 | Account | Create a field on Account Named (Client Contact lookup to Contact). Once an account insert a contact will create with the name of account and that contact will be the client contact on Account | [Link]() |
 | 10 | OpportunityLineItem | When an opportunity line item create an email should go to Opportunity Account | [Link]() |

@@ -22,4 +22,39 @@ public class AccountTriggerHandler {
         }
         update newAccList;
     }
+    //Scenario 7
+    // Static variable to control recursion within the same transaction
+    public static Boolean hasRun = false;
+    public static void  updateOpportunity(List<Account> updatedAccounts){
+
+        // Prevent recursion
+        if (hasRun) return; // If it's already run, exit early
+        hasRun = true; // Mark that it has run
+
+        Set<Id> accListId = new Set<Id>();
+        //Create a roll up summary on Account which count no of opportunities on account
+        for(Account acc : updatedAccounts){
+            if(acc.Opportunity_Count__c != 0){
+                accListId.add(acc.Id);
+            }
+        }
+        List<Opportunity> updatedOpportunity = new List<Opportunity>();
+        for(Opportunity opp : [SELECT Id, Name, StageName, CreatedDate FROM Opportunity WHERE AccountId IN :accListId]){
+            // Convert CreatedDate (DateTime) to Date
+            Date createdDateOnly = opp.CreatedDate.date();
+            
+            // Calculate days between today and created date
+            Integer daysOld = createdDateOnly.daysBetween(System.today());
+            System.debug(daysOld);
+            if(daysOld > 30){
+                Opportunity updateOpp = new Opportunity();
+                updateOpp.Id = opp.id;
+                updateOpp.StageName = 'Closed Lost';
+                updatedOpportunity.add(updateOpp);
+            }
+        }
+        if (!updatedOpportunity.isEmpty()) {
+            update updatedOpportunity;
+        }
+    }
 }
