@@ -89,4 +89,31 @@ public class AccountTriggerHandler {
             }
         }
     }
+
+    //Scenario 11
+    public static void sendAdminMail(List<Account> accountList){
+        List<User> adminUsers = [SELECT Id, Name,Email FROM User WHERE Profile.Name = 'System Administrator'];
+        List<Account> accList = new List<Account>();
+        for(Account acc : accountList){
+            if(acc.Email__c != null){
+                accList.add(acc);
+            }
+        }
+        if(!accList.isEmpty()){
+            List<Messaging.SingleEmailMessage> emailMessages = new List<Messaging.SingleEmailMessage>();
+            
+            for(Account acc : accList){
+                Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+                email.setToAddresses(new String[] { adminUsers[0].Email });
+                email.setSubject('New Account Creation');
+                email.setPlainTextBody(
+                    'Hi an account has been created and name is '+acc.Name
+                );
+                emailMessages.add(email);
+            }
+            if (!emailMessages.isEmpty()) {
+                Messaging.sendEmail(emailMessages);
+            }
+        }
+    }
 }
