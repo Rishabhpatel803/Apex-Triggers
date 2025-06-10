@@ -40,4 +40,37 @@ public with sharing class OpportunityLineItemTriggerHandler {
             insert assetCreate;
         }
     }
+
+    //Scenario 10
+    public static void sendMail(List<OpportunityLineItem> newList){
+        Set<Id> oppId = new Set<Id>();
+        for(OpportunityLineItem oli : newList){
+            if (oli.OpportunityId != null){
+            oppId.add(oli.OpportunityId);
+            }
+        }
+
+        Map<Id,Opportunity> oppMap = new Map<Id, Opportunity>([SELECT Id, Name, Account.Name, Account.Email__c FROM Opportunity WHERE Id IN :oppId]);
+
+        List<Messaging.SingleEmailMessage> emailMessages = new List<Messaging.SingleEmailMessage>();
+
+        for (OpportunityLineItem oli : newList) {
+            Opportunity opp = oppMap.get(oli.OpportunityId);
+            if (opp != null && opp.Account != null && String.isNotBlank(opp.Account.Email__c)) {
+                Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+                email.setToAddresses(new String[] { opp.Account.Email__c });
+                email.setSubject('Product Added to Opportunity');
+                email.setPlainTextBody(
+                    'Hi ' + opp.Account.Name + ',\n\n' +
+                    'A new product has been added to your opportunity "' + opp.Name + '".\n\n' +
+                    'Regards,\nYour Company'
+                );
+                emailMessages.add(email);
+            }
+        }
+
+        if (!emailMessages.isEmpty()) {
+            Messaging.sendEmail(emailMessages);
+        }
+    }
 }
