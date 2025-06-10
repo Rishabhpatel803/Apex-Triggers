@@ -57,4 +57,36 @@ public class AccountTriggerHandler {
             update updatedOpportunity;
         }
     }
+
+    //Scenario 9
+    public static void createClientContact(List<Account> newListAccount){
+        Set<String> accName = new Set<String>();
+        List<Contact> countContactInsert = new List<Contact>();
+        for(Account acc : newListAccount){
+            accName.add(acc.name);
+            Contact countContactCreate = new Contact();
+            countContactCreate.LastName = acc.Name;
+            countContactInsert.add(countContactCreate);
+        }
+        if(!countContactInsert.isEmpty()){
+            insert countContactInsert;//insert new count contact on account creation
+
+            Map<String,Id> accUpdate = new Map<String,Id>();
+            for(Contact c : [SELECT Id, LastName FROM Contact WHERE LastName IN :accName]){
+                accUpdate.put(c.LastName,c.Id);
+            }
+
+            Set<String> accountName = new Set<String>(accUpdate.keySet());
+            List<Account> accountUpdate = [SELECT Id, Name, Client_Contact__c FROM Account WHERE Name IN :accountName];
+
+            for(Account acc : accountUpdate){
+                Id contactId = accUpdate.get(acc.Name);
+                acc.Client_Contact__c = contactId;
+            }
+
+            if(!accountUpdate.isEmpty()){
+                update accountUpdate;
+            }
+        }
+    }
 }
