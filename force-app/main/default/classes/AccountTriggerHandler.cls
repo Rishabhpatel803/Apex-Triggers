@@ -93,6 +93,12 @@ public class AccountTriggerHandler {
     //Scenario 11
     public static void sendAdminMail(List<Account> accountList){
         List<User> adminUsers = [SELECT Id, Name,Email FROM User WHERE Profile.Name = 'System Administrator'];
+        List<String> adUser = new List<String>();//conditon check that user email is not blank
+        for(User users : adminUsers){
+            if(users.Email != null){
+                adUser.add(users.Email);
+            }
+        }
         List<Account> accList = new List<Account>();
         for(Account acc : accountList){
             if(acc.Email__c != null){
@@ -104,7 +110,7 @@ public class AccountTriggerHandler {
             
             for(Account acc : accList){
                 Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
-                email.setToAddresses(new String[] { adminUsers[0].Email });
+                email.setToAddresses(adUser);
                 email.setSubject('New Account Creation');
                 email.setPlainTextBody(
                     'Hi an account has been created and name is '+acc.Name
