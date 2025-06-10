@@ -73,4 +73,63 @@ public with sharing class OpportunityLineItemTriggerHandler {
             Messaging.sendEmail(emailMessages);
         }
     }
+
+    //Scenario 12
+    public static void setProductQty(List<OpportunityLineItem> newList){
+        //Gathering all the opportunity id
+        Set<Id> oppIds = new Set<Id>();
+        for(OpportunityLineItem oli : newList){
+            oppIds.add(oli.OpportunityId);
+        }
+
+        // Map OpportunityId → AccountId
+        Map<Id, Id> oppIdToAccountId = new Map<Id, Id>();
+        for(Opportunity opp : [
+            SELECT Id, AccountId FROM Opportunity WHERE Id IN :oppIds
+        ]){
+            if (opp.AccountId != null) {
+                oppIdToAccountId.put(opp.Id, opp.AccountId);
+            }
+        }
+
+        Set<Id> accountIds = new Set<Id>(oppIdToAccountId.values());
+
+        // Query all Opps for these Accounts
+        Map<Id, List<Id>> accountToOppIds = new Map<Id, List<Id>>();
+        for(Opportunity opp : [
+            SELECT Id, AccountId FROM Opportunity WHERE AccountId IN :accountIds
+        ]) {
+            if (!accountToOppIds.containsKey(opp.AccountId)) {
+                accountToOppIds.put(opp.AccountId, new List<Id>());
+            }
+            accountToOppIds.get(opp.AccountId).add(opp.Id);
+        }
+
+        // Now get total quantity for each account
+        Map<Id, Decimal> accountToTotalQty = new Map<Id, Decimal>();
+        for(Id accId : accountToOppIds.keySet()){
+            List<Id> allOppIds = accountToOppIds.get(accId);
+            AggregateResult[] results = [
+                SELECT SUM(Quantity) totalQty
+                FROM OpportunityLineItem
+                WHERE OpportunityId IN :allOppIds
+            ];
+            if(results.size() > 0 && results[0].get('totalQty') != null){
+                accountToTotalQty.put(accId, (Decimal)results[0].get('totalQty'));
+            }
+        }
+
+        // Prepare Account updates
+        List<Account> accToUpdate = new List<Account>();
+        for(Id accId : accountToTotalQty.keySet()){
+            accToUpdate.add(new Account(
+                Id = accId,
+                Total_Quantity__c = accountToTotalQty.get(accId)
+            ));
+        }
+
+        if(!accToUpdate.isEmpty()){
+            update accToUpdate;
+        }
+    }
 }
