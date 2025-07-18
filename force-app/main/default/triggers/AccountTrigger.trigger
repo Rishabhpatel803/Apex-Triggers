@@ -7,5 +7,6 @@ trigger AccountTrigger on Account (after insert, after update) {
     //Scenario 7
     if(Trigger.isAfter && Trigger.isUpdate){
         AccountTriggerHandler.updateOpportunity(Trigger.new);
+        AccountTriggerHandler.updateTotalOppAmount(Trigger.new);//Part of Scenario 13
     }
 }

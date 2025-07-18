@@ -1,4 +1,6 @@
 public class AccountTriggerHandler {
+    public static boolean hasRun = false;
+    public static Boolean hasUpdateTotalOppAmountRun = false;
     public static void updateShipping(List<Account> accountList) {
         List<Id> accList = new List<Id>(); //gather all accounts where billing address is not null
         for(Account acc : accountList){
@@ -24,7 +26,6 @@ public class AccountTriggerHandler {
     }
     //Scenario 7
     // Static variable to control recursion within the same transaction
-    public static Boolean hasRun = false;
     public static void  updateOpportunity(List<Account> updatedAccounts){
 
         // Prevent recursion
@@ -120,6 +121,46 @@ public class AccountTriggerHandler {
             if (!emailMessages.isEmpty()) {
                 Messaging.sendEmail(emailMessages);
             }
+        }
+    }
+
+    //Scenario 13
+    public static void updateTotalOppAmount(List<Account> newAccList){
+        if(hasUpdateTotalOppAmountRun == false){
+            hasUpdateTotalOppAmountRun = true;
+            //creating map for storing all the related opportunities to the account
+            Map<Id,List<Id>> accOppMap = new Map<Id,List<Id>>();
+            
+            for(Opportunity opp : [SELECT Id, AccountId FROM Opportunity WHERE AccountId IN :newAccList]){
+                if(!accOppMap.containsKey(opp.AccountId)){
+                    accOppMap.put(opp.AccountId, new List<Id>());
+                }
+                accOppMap.get(opp.AccountId).add(opp.Id);
+            }
+            
+            Map<Id,Decimal> updateAcc = new Map<Id, Decimal>();
+            for(Id accId : accOppMap.keySet()){
+                List<Id> oppId = accOppMap.get(accId);
+                AggregateResult[] results = [SELECT SUM(Amount) Amt FROM Opportunity WHERE Id IN :oppId];
+
+                if(results.size() > 0 && results[0].get('Amt') != null){
+                    updateAcc.put(accId, (Decimal)results[0].get('Amt'));
+                }else{
+                    updateAcc.put(accId, 0);
+                }
+            }
+            List<Account> accUpdate = new List<Account>();
+            if(!updateAcc.isEmpty()){
+                for(Id accId : updateAcc.keySet()){
+                    Account acc = new Account(Id = accId, Total_Opportunity_Amount__c = updateAcc.get(accId));
+                    accUpdate.add(acc);
+                }
+            }
+            if(!accUpdate.isEmpty()){
+                update accUpdate;
+            }
+        }else{
+            return;
         }
     }
 }
