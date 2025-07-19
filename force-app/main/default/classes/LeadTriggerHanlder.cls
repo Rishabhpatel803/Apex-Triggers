@@ -18,4 +18,46 @@ public with sharing class LeadTriggerHanlder {
         }
         insert dupLead;
     }
+
+    public static void sendWelcomeEmailToNewLead(List<Lead> newleads){
+        List<Id> validLeadList = new List<Id>();
+        for(Lead leads : newleads){
+            if(String.isNotBlank(leads.Email)){
+                validLeadList.add(leads.Id);
+            }
+        }
+        sendWelcomeEmail(validLeadList);
+    }
+
+    public static void sendWelcomeEmail(List<Id> leadIds) {
+        List<Lead> leads = [SELECT Id, Email FROM Lead WHERE Id IN :leadIds];
+
+        // Fetch the PDF from Documents
+        ContentVersion cv = [SELECT Id, Title, VersionData FROM ContentVersion WHERE Title = 'Aggregate Functions in SOQL' ORDER BY CreatedDate DESC LIMIT 1];
+
+        // Prepare the PDF attachment
+        Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
+        attachment.setFileName(cv.Title + '.pdf');
+        attachment.setBody(cv.VersionData);
+        attachment.setContentType('application/pdf');
+
+        List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
+
+        for (Lead l : leads) {
+            Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+            email.setToAddresses(new String[] { l.Email });
+            email.setSubject('Welcome');
+            email.setPlainTextBody('Welcome to our services! Please find the attached document for Aggregate Result Lecture.');
+            email.setFileAttachments(new Messaging.EmailFileAttachment[] { attachment });
+
+            emails.add(email);
+        }
+        try {
+            if (!emails.isEmpty()) {
+                Messaging.sendEmail(emails);
+            }
+        } catch (Exception e) {
+            System.debug('Email error: ' + e.getMessage());
+        }     
+    }
 }
