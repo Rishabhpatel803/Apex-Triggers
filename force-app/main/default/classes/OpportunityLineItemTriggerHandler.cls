@@ -132,4 +132,20 @@ public with sharing class OpportunityLineItemTriggerHandler {
             update accToUpdate;
         }
     }
+
+    //Scenario 16
+    public static void deleteRelatedOpportunity(List<OpportunityLineItem> oldList){
+        List<Id> oppId = new List<Id>();
+        for(OpportunityLineItem oli : oldList){
+            System.debug('Related Opportunity : '+oli.OpportunityId);
+            oppId.add(oli.OpportunityId);
+        }
+        if(!oppId.isEmpty()){
+            List<Opportunity> oppList = [Select Id, Name FROM Opportunity WHERE Id IN : oppId];
+            if(!oppList.isEmpty()){
+                delete oppList;
+            }
+        }
+        
+    }
 }
