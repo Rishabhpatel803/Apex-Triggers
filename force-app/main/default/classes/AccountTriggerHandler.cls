@@ -163,4 +163,40 @@ public class AccountTriggerHandler {
             return;
         }
     }
+
+    //Scenario 15
+    public static void updateAndSendEmail(List<Account> newAcc){
+        List<Id> accId = new List<Id>();
+        for(Account acc : newAcc){
+            Account oldAcc = (Account)Trigger.oldMap.get(acc.Id);
+            if(acc.Type != oldAcc.Type){
+                accId.add(acc.Id);
+            }
+        }
+        if(!accId.isEmpty()){
+            sendEmailToContacts(accId);
+        }
+    }
+
+    public static void sendEmailToContacts(List<Id> accountId) {
+        List<Contact> contacts = [SELECT Id, Email, FirstName, LastName FROM Contact WHERE AccountId IN :accountId];
+
+        List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
+
+        for (Contact c : contacts) {
+            Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+            email.setToAddresses(new String[] { c.Email });
+            email.setSubject('Update on your Account');
+            email.setPlainTextBody('Hi'+c.FirstName+' '+c.LastName+', your account Type has been upgraded.');
+
+            emails.add(email);
+        }
+        try {
+            if (!emails.isEmpty()) {
+                Messaging.sendEmail(emails);
+            }
+        } catch (Exception e) {
+            System.debug('Email error: ' + e.getMessage());
+        }     
+    }
 }
