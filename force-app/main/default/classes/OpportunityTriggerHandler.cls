@@ -42,4 +42,40 @@ public class OpportunityTriggerHandler {
             insert oppLineItems;
         }
     }
+
+    //Scenario 17
+    public static void sendEmailToAccContacts(List<Opportunity> oppList){
+        List<Id> accId = new List<Id>();
+        for(Opportunity opp : oppList){
+            Opportunity oldOppMap = (Opportunity)Trigger.oldMap.get(opp.Id);
+            if(opp.StageName != oldOppMap.StageName){
+                accId.add(opp.AccountId);
+            }
+        }
+        if(!accId.isEmpty()){
+            sendEmailToContacts(accId);
+        }
+    }
+
+    public static void sendEmailToContacts(List<Id> accountId) {
+        List<Contact> contacts = [SELECT Id, Email, FirstName, LastName FROM Contact WHERE AccountId IN :accountId];
+
+        List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
+
+        for (Contact c : contacts) {
+            Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+            email.setToAddresses(new String[] { c.Email });
+            email.setSubject('Update on your Opportunity');
+            email.setPlainTextBody('Hi '+c.FirstName+' '+c.LastName+', your Opportuntiy has been updated.');
+
+            emails.add(email);
+        }
+        try {
+            if (!emails.isEmpty()) {
+                Messaging.sendEmail(emails);
+            }
+        } catch (Exception e) {
+            System.debug('Email error: ' + e.getMessage());
+        }     
+    }
 }
