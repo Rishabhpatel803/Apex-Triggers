@@ -146,6 +146,26 @@ public with sharing class OpportunityLineItemTriggerHandler {
                 delete oppList;
             }
         }
-        
+    }
+
+    //Scenario 18
+    public static void insertQuotation(List<OpportunityLineItem> newOppList){
+        Set<Id> oppId = new Set<Id>();
+        for(OpportunityLineItem oli : newOppList){
+            oppId.add(oli.OpportunityId);        
+        }
+        List<Quote> insertQuote = new List<Quote>();
+        if(!oppId.isEmpty()){
+        for (Opportunity opp : [SELECT Id, Name, AccountId, CloseDate FROM Opportunity WHERE Id IN :oppId]){
+                Quote newQuote = new Quote();
+                newQuote.Name = opp.Name + ' Quote';
+                newQuote.OpportunityId = opp.Id;
+                newQuote.ExpirationDate= opp.CloseDate;
+                insertQuote.add(newQuote);
+            }
+        }
+        if(!insertQuote.isEmpty()){
+            insert insertQuote;
+        }
     }
 }
