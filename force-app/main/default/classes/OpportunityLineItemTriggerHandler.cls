@@ -168,4 +168,45 @@ public with sharing class OpportunityLineItemTriggerHandler {
             insert insertQuote;
         }
     }
+
+    //Scenario 20
+    public static void populateTotalQTY(List<OpportunityLineItem> oliList){
+
+        Set<Id> oppIdSet = new Set<Id>();
+        for(OpportunityLineItem oli : oliList){
+            if(oli.OpportunityId != null){
+                oppIdSet.add(oli.OpportunityId);
+            }
+        }
+
+        Map<Id,Opportunity> accIdOppMap = new Map<Id,Opportunity>([SELECT Id, AccountId FROM Opportunity WHERE AccountId != null AND Id IN: oppIdSet]);
+
+        Set<Id> accIdSet = new Set<Id>();
+        for(Opportunity opp : accIdOppMap.values()){
+            if(opp.AccountId != null){
+                accIdSet.add(opp.AccountId);
+            }
+        }
+
+        if(accIdSet.isEmpty())return;
+        
+        List<AggregateResult> ar = [SELECT Opportunity.AccountId oppAccId, SUM(Quantity) totalQty FROM OpportunityLineItem WHERE Opportunity.AccountId IN : accIdSet GROUP BY Opportunity.AccountId];
+
+        Map<Id,Decimal> accValue = new Map<Id, Decimal>();
+        for(AggregateResult result : ar){
+            accValue.put((Id)result.get('oppAccId'),(Decimal)result.get('totalQty'));
+        }   
+
+
+        if(accValue.isEmpty())return;
+
+        List<Account> accToUpdate = new List<Account>();
+        for(Id accId : accIdSet){
+            accToUpdate.add(new Account(Id = accId, Total_Line_Items__c = accValue.containsKey(accId)? accValue.get(accId) : 0 ));
+        }
+
+        if(!accToUpdate.isEmpty()){
+            update accToUpdate;
+        }
+    }
 }
