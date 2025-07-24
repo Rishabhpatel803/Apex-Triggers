@@ -256,4 +256,28 @@ public class AccountTriggerHandler {
             insert assetToInsert;
         }
     }
+
+    //Scenario 24
+    public static void updateFieldOnContact(List<Account> newAccList, Map<Id,Account> oldMap){
+        Set<Id> accList = new Set<Id>();
+        for(Account acc : newAccList){
+            Account oldValue = oldMap.get(acc.Id);
+            if(acc.BillingCity != oldValue.BillingCity){
+                accList.add(acc.Id);
+            }
+        }
+
+        List<Contact> conList = [
+            SELECT Id, MailingCity, Account.BillingCity 
+            FROM Contact 
+            WHERE AccountId IN :accList
+        ];
+
+        for(Contact con : conList){
+            con.MailingCity = con.Account.BillingCity;
+        }
+        if(!conList.isEmpty()){
+            update conList;
+        }
+    }
 }
