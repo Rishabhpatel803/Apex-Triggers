@@ -1,6 +1,6 @@
 trigger OpportunityLineItemTrigger on OpportunityLineItem (after insert, after update, after delete, after undelete) {
     if(Trigger.isAfter && Trigger.isInsert){
-        OpportunityLineItemTriggerHandler.createAsset(Trigger.new);
+        OpportunityLineItemTriggerHandler.createAsset(Trigger.new);//Scenario 8,23
         OpportunityLineItemTriggerHandler.sendMail(Trigger.new);// Scenario 10
         OpportunityLineItemTriggerHandler.setProductQty(Trigger.new);//Scenario 12
         OpportunityLineItemTriggerHandler.insertQuotation(Trigger.new);//Scenario 18

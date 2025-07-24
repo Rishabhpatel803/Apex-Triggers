@@ -1,4 +1,5 @@
 public with sharing class OpportunityLineItemTriggerHandler {
+    //Scenario 8,23
     public static void createAsset(List<OpportunityLineItem> newOppLineItemList) {
         // Map to group OLIs by OpportunityId
         Map<Id, List<OpportunityLineItem>> newMap = new Map<Id, List<OpportunityLineItem>>();
