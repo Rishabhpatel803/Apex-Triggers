@@ -9,5 +9,6 @@ trigger AccountTrigger on Account (after insert, after update) {
         AccountTriggerHandler.updateOpportunity(Trigger.new);
         AccountTriggerHandler.updateTotalOppAmount(Trigger.new);//Part of Scenario 13
         AccountTriggerHandler.updateAndSendEmail(Trigger.new);//Part of Scenario 15
+        AccountTriggerHandler.createCopyOLIToAsset(Trigger.new);//Part of Scenario 22
     }
 }
