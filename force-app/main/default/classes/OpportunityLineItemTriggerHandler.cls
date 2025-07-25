@@ -210,4 +210,18 @@ public with sharing class OpportunityLineItemTriggerHandler {
             update accToUpdate;
         }
     }
+
+    //Scenario 26
+    public static void insertSerialNo(List<OpportunityLineItem> oliList){
+        Decimal lastSerialNo = 0;
+        List<OpportunityLineItem> olList = [SELECT Id, Serial_No__c FROM OpportunityLineItem ORDER BY Serial_No__c ASC];
+        if (!olList.isEmpty()) {
+            lastSerialNo = (Decimal)olList[olList.size()-1].Serial_No__c != null ? olList[olList.size()-1].Serial_No__c : 0;
+        }
+
+        for (OpportunityLineItem oli : oliList) {
+            lastSerialNo += 1;
+            oli.Serial_No__c = lastSerialNo;
+        }
+    }
 }
