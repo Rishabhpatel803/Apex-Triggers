@@ -78,4 +78,24 @@ public class OpportunityTriggerHandler {
             System.debug('Email error: ' + e.getMessage());
         }     
     }
+
+    //Scenario 25
+    public static void updateAccClientConact(List<Opportunity> oppList, Map<Id,Opportunity> oldValueMap){
+        Set<Id> newOppId = new Set<Id>();
+        for(Opportunity opp : oppList){
+            Opportunity oldOppValue = oldValueMap.get(opp.Id);
+            if(opp.Client_Contact__c != oldOppValue.Client_Contact__c){
+                newOppId.add(opp.Id);
+            }
+        }
+        if(newOppId.isEmpty())return;
+
+        List<Account> accToUpdate = new List<Account>();
+        for(Opportunity opp : [SELECT Id, AccountId, Client_Contact__c FROM Opportunity WHERE Id IN : newOppId]){
+            accToUpdate.add(new Account(Id = opp.AccountId, Opp_Client_Contact__c = opp.Client_Contact__c));            
+        }
+        if(!accToUpdate.isEmpty()){
+            update accToUpdate;
+        }
+    }
 }

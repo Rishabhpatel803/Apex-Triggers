@@ -10,5 +10,6 @@ trigger OpportunityTrigger on Opportunity (before insert, after insert, after up
     }
     if (Trigger.isAfter && Trigger.isUpdate) {
         OpportunityTriggerHandler.sendEmailToAccContacts(Trigger.new);//Scenario 17
+        OpportunityTriggerHandler.updateAccClientConact(Trigger.new, Trigger.oldMap);//Scenario 25
     }
 }
