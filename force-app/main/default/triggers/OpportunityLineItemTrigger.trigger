@@ -9,6 +9,7 @@ trigger OpportunityLineItemTrigger on OpportunityLineItem (before insert, after 
         OpportunityLineItemTriggerHandler.setProductQty(Trigger.new);//Scenario 12
         OpportunityLineItemTriggerHandler.insertQuotation(Trigger.new);//Scenario 18
         OpportunityLineItemTriggerHandler.populateTotalQTY(Trigger.new);//Scenario 20
+        OpportunityLineItemTriggerHandler.handleQuantityDeduction(Trigger.new);//Scenario 28
     }
     if(Trigger.isAfter && Trigger.isUpdate){
         OpportunityLineItemTriggerHandler.populateTotalQTY(Trigger.new);//Scenario 20

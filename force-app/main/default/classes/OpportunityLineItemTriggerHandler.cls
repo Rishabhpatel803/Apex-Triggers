@@ -224,4 +224,51 @@ public with sharing class OpportunityLineItemTriggerHandler {
             oli.Serial_No__c = lastSerialNo;
         }
     }
+
+    //Scenario 28
+    public static void handleQuantityDeduction(List<OpportunityLineItem> oliList) {
+        Set<Id> productIds = new Set<Id>();
+
+        // Collect product ids
+        for (OpportunityLineItem oli : oliList) {
+            if (oli.PricebookEntryId != null) {
+                productIds.add(oli.PricebookEntry.Product2Id);
+            }
+        }
+
+        // Query Product2s
+        Map<Id, Product2> productMap = new Map<Id, Product2>(
+            [SELECT Id, Total_Quantity__c FROM Product2 WHERE Id IN :productIds]
+        );
+
+        // Track quantities per product
+        Map<Id, Decimal> quantityToDeductMap = new Map<Id, Decimal>();
+
+        for (OpportunityLineItem oli : oliList) {
+            Id productId = oli.PricebookEntry.Product2Id;
+
+            if (!quantityToDeductMap.containsKey(productId)) {
+                quantityToDeductMap.put(productId, 0);
+            }
+
+            quantityToDeductMap.put(productId, quantityToDeductMap.get(productId) + oli.Quantity);
+        }
+
+        // Update product quantities
+        List<Product2> productsToUpdate = new List<Product2>();
+
+        for (Id prodId : quantityToDeductMap.keySet()) {
+            if (productMap.containsKey(prodId)) {
+                Product2 prod = productMap.get(prodId);
+                Decimal newQty = (prod.Total_Quantity__c != null ? prod.Total_Quantity__c : 0) - quantityToDeductMap.get(prodId);
+                if (newQty < 0) newQty = 0; // prevent negative stock
+                prod.Total_Quantity__c = newQty;
+                productsToUpdate.add(prod);
+            }
+        }
+
+        if (!productsToUpdate.isEmpty()) {
+            update productsToUpdate;
+        }
+    }
 }
