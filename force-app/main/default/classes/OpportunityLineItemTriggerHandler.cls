@@ -271,4 +271,38 @@ public with sharing class OpportunityLineItemTriggerHandler {
             update productsToUpdate;
         }
     }
+
+    //Scenario 32
+    public static void validateProductMatch(List<OpportunityLineItem> oliList) {
+        Set<Id> oppIds = new Set<Id>();
+        Set<Id> productIds = new Set<Id>();
+
+        for(OpportunityLineItem oli : oliList){
+            if(oli.OpportunityId != null) oppIds.add(oli.OpportunityId);
+            if(oli.PricebookEntryId != null) productIds.add(oli.PricebookEntryId);
+        }
+
+        Map<Id, Opportunity> oppMap = new Map<Id, Opportunity>(
+            [SELECT Id, Product_Type__c FROM Opportunity WHERE Id IN :oppIds]
+        );
+
+        Map<Id, Product2> prodMap = new Map<Id, Product2>();
+        for(PricebookEntry pbe : [
+            SELECT Id, Product2Id, Product2.Family FROM PricebookEntry
+            WHERE Id IN :productIds
+        ]){
+            prodMap.put(pbe.Id, new Product2(Id = pbe.Product2Id, Family = pbe.Product2.Family));
+        }
+
+        for(OpportunityLineItem oli : oliList){
+            Opportunity opp = oppMap.get(oli.OpportunityId);
+            Product2 prod = prodMap.get(oli.PricebookEntryId);
+
+            if(opp != null && prod != null){
+                if(opp.Product_Type__c != prod.Family){
+                    oli.addError('Product Family (' + prod.Family + ') must match Opportunity Product Type (' + opp.Product_Type__c + ').');
+                }
+            }
+        }
+    }
 }

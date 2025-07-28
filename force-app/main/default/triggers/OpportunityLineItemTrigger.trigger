@@ -1,7 +1,10 @@
-trigger OpportunityLineItemTrigger on OpportunityLineItem (before insert, after insert, after update, after delete, after undelete) {
+trigger OpportunityLineItemTrigger on OpportunityLineItem (before insert, before update, after insert, after update, after delete, after undelete) {
     if(Trigger.isBefore && Trigger.isInsert){
         OpportunityLineItemTriggerHandler.insertSerialNo(Trigger.new);//Scenario 26
-
+        OpportunityLineItemTriggerHandler.validateProductMatch(Trigger.new);//Scenario 32
+    }
+    if(Trigger.isBefore && Trigger.isUpdate){
+        OpportunityLineItemTriggerHandler.validateProductMatch(Trigger.new);//Scenario 32
     }
     if(Trigger.isAfter && Trigger.isInsert){
         OpportunityLineItemTriggerHandler.createAsset(Trigger.new);//Scenario 8,23
