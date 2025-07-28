@@ -280,4 +280,27 @@ public class AccountTriggerHandler {
             update conList;
         }
     }
+
+    //Scenario 31
+    public static void updateAccountCount(List<Account> accList, boolean isInsert){
+        Map<Id, Integer> userCountMap = new Map<Id, Integer>();
+
+        for(Account acc : accList){
+            if(acc.OwnerId != null && String.valueOf(acc.OwnerId).startsWith('005')){ // make sure it's a User
+                Integer count = userCountMap.containsKey(acc.OwnerId) ? userCountMap.get(acc.OwnerId) : 0;
+                userCountMap.put(acc.OwnerId, isInsert ? count + 1 : count - 1);
+            }
+        }
+
+        List<User> usersToUpdate = [SELECT Id, Account_Count__c FROM User WHERE Id IN :userCountMap.keySet()];
+
+        for(User usr : usersToUpdate){
+            Decimal current = usr.Account_Count__c != null ? usr.Account_Count__c : 0;
+            usr.Account_Count__c = current + userCountMap.get(usr.Id);
+        }
+
+        if(!usersToUpdate.isEmpty()){
+            update usersToUpdate;
+        }
+    }
 }
