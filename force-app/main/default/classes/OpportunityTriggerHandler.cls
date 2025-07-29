@@ -119,4 +119,42 @@ public class OpportunityTriggerHandler {
             update accList;
         }
     }
+
+    //Scenario 34
+    public static void setAccPicklistValues(List<Opportunity> oppList){
+        Set<Id> accountIds = new Set<Id>();
+        for(Opportunity opp : oppList){
+            if(opp.AccountId != null){
+                accountIds.add(opp.AccountId);
+            }
+        }
+        if(accountIds.isEmpty()) return;
+
+        // Query all related Opportunities for each Account
+        Map<Id, List<String>> accountToValues = new Map<Id, List<String>>();
+        for(Opportunity opp : [
+            SELECT AccountId, Sync_Values__c
+            FROM Opportunity
+            WHERE AccountId IN :accountIds AND Sync_Values__c != null
+        ]) {
+            if(!accountToValues.containsKey(opp.AccountId)){
+                accountToValues.put(opp.AccountId, new List<String>());
+            }
+            List<String> existing = accountToValues.get(opp.AccountId);
+            existing.addAll(opp.Sync_Values__c.split(';'));
+        }
+
+        List<Account> accountsToUpdate = new List<Account>();
+        for(Id accId : accountToValues.keySet()){
+            Set<String> uniqueValues = new Set<String>(accountToValues.get(accId));
+            accountsToUpdate.add(new Account(
+                Id = accId,
+                Synced_Values__c = String.join(new List<String>(uniqueValues), ';')
+            ));
+        }
+
+        if(!accountsToUpdate.isEmpty()){
+            update accountsToUpdate;
+        }
+    }
 }

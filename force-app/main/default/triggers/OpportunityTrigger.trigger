@@ -8,11 +8,13 @@ trigger OpportunityTrigger on Opportunity (before insert, after insert, after up
     if (Trigger.isAfter && Trigger.isInsert) {
         OpportunityTriggerHandler.addLineItem(Trigger.new);
         OpportunityTriggerHandler.setMinAndMaxDate(Trigger.new);//Scenario 33
+        OpportunityTriggerHandler.setAccPicklistValues(Trigger.new);//Scenario 34
     }
     if (Trigger.isAfter && Trigger.isUpdate) {
         OpportunityTriggerHandler.sendEmailToAccContacts(Trigger.new);//Scenario 17
         OpportunityTriggerHandler.updateAccClientConact(Trigger.new, Trigger.oldMap);//Scenario 25
         OpportunityTriggerHandler.setMinAndMaxDate(Trigger.new);//Scenario 33
+        OpportunityTriggerHandler.setAccPicklistValues(Trigger.new);//Scenario 34
     }
     if(Trigger.isAfter && Trigger.isDelete){
         OpportunityTriggerHandler.setMinAndMaxDate(Trigger.old);//Scenario 33
