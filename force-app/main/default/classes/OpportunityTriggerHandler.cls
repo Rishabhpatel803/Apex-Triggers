@@ -98,4 +98,25 @@ public class OpportunityTriggerHandler {
             update accToUpdate;
         }
     }
+
+    //Scenario 33
+    public static void setMinAndMaxDate(List<Opportunity> oppList){
+        Set<Id> accIdSet = new Set<Id>();
+        for(Opportunity opp : oppList){
+            if( opp.AccountId != null){
+                accIdSet.add(opp.AccountId);
+            }
+        }
+        if(accIdSet.isEmpty())return;
+
+        List<AggregateResult> oppResult = [SELECT AccountId, MIN(CloseDate) minCloseDate, MAX(CloseDate) maxCloseDate FROM Opportunity WHERE AccountId IN : accIdSet GROUP BY AccountId];
+        List<Account> accList = new List<Account>();
+
+        for(AggregateResult ar : oppResult){
+            accList.add(new Account(Id = (Id)ar.get('AccountId'), Min_Opp_Date__c = (Date)ar.get('minCloseDate'), Max_Opp_Date__c = (Date)ar.get('maxCloseDate')));
+        }
+        if(!accList.isEmpty()){
+            update accList;
+        }
+    }
 }
