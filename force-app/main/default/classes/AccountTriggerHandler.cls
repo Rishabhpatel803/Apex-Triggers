@@ -199,4 +199,108 @@ public class AccountTriggerHandler {
             System.debug('Email error: ' + e.getMessage());
         }     
     }
+
+    //Scenario 22
+    public static void createCopyOLIToAsset(List<Account> updatedAccList){
+        Set<Id> accList = new Set<Id>();
+        for(Account acc : updatedAccList){
+            if(!accList.contains(acc.Id)){
+                accList.add(acc.Id);
+            }
+        }
+        if(accList.isEmpty())return;
+
+        List<OpportunityLineItem> oliList = [SELECT Id, Name, Product2Id, ProductCode, Quantity, ListPrice, Opportunity.AccountId FROM OpportunityLineItem WHERE Opportunity.AccountId IN : accList];
+
+        Map<Id, Set<String>> assetNameMap = new Map<Id, Set<String>>();
+        for (Asset a : [
+            SELECT Name, AccountId
+            FROM Asset
+            WHERE AccountId IN :accList
+        ]) {
+            if (!assetNameMap.containsKey(a.AccountId)) {
+                assetNameMap.put(a.AccountId, new Set<String>());
+            }            
+            assetNameMap.get(a.AccountId).add(a.Name);
+        }
+
+        List<Asset> assetToInsert = new List<Asset>();
+        for(OpportunityLineItem oli : oliList){
+            Id accId = oli.Opportunity.AccountId;
+            String assetOLIName = oli.Name + ' Asset';
+
+            // Make sure we have a set for this account
+            if (!assetNameMap.containsKey(accId)) {
+                assetNameMap.put(accId, new Set<String>());
+            }
+            Set<String> nameSet = assetNameMap.get(accId);
+
+            // Skip if name already exists
+            if (nameSet.contains(assetOLIName)) {
+                continue;
+            }
+
+            // Create new Asset
+            Asset assetDup = new Asset();
+            assetDup.Name = assetOLIName;
+            assetDup.Product2Id = oli.Product2Id;
+            assetDup.Quantity = oli.Quantity;
+            assetDup.Price = oli.ListPrice;
+            assetDup.AccountId = accId;
+            assetToInsert.add(assetDup);
+
+            // Track the name to prevent duplicate inserts in same run
+            nameSet.add(assetOLIName);
+        }
+        if(!assetToInsert.isEmpty()){
+            insert assetToInsert;
+        }
+    }
+
+    //Scenario 24
+    public static void updateFieldOnContact(List<Account> newAccList, Map<Id,Account> oldMap){
+        Set<Id> accList = new Set<Id>();
+        for(Account acc : newAccList){
+            Account oldValue = oldMap.get(acc.Id);
+            if(acc.BillingCity != oldValue.BillingCity){
+                accList.add(acc.Id);
+            }
+        }
+
+        List<Contact> conList = [
+            SELECT Id, MailingCity, Account.BillingCity 
+            FROM Contact 
+            WHERE AccountId IN :accList
+        ];
+
+        for(Contact con : conList){
+            con.MailingCity = con.Account.BillingCity;
+        }
+        if(!conList.isEmpty()){
+            update conList;
+        }
+    }
+
+    //Scenario 31
+    public static void updateAccountCount(List<Account> accList, boolean isInsert){
+        Map<Id, Integer> userCountMap = new Map<Id, Integer>();
+
+        for(Account acc : accList){
+            if(acc.OwnerId != null && String.valueOf(acc.OwnerId).startsWith('005')){ // make sure it's a User
+                Integer count = userCountMap.containsKey(acc.OwnerId) ? userCountMap.get(acc.OwnerId) : 0;
+                userCountMap.put(acc.OwnerId, isInsert ? count + 1 : count - 1);
+            }
+        }
+
+        List<User> usersToUpdate = [SELECT Id, Account_Count__c FROM User WHERE Id IN :userCountMap.keySet()];
+
+        for(User usr : usersToUpdate){
+            Decimal current = usr.Account_Count__c != null ? usr.Account_Count__c : 0;
+            usr.Account_Count__c = current + userCountMap.get(usr.Id);
+        }
+
+        if(!usersToUpdate.isEmpty()){
+            update usersToUpdate;
+        }
+    }
 }

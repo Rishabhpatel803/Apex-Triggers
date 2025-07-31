@@ -78,4 +78,83 @@ public class OpportunityTriggerHandler {
             System.debug('Email error: ' + e.getMessage());
         }     
     }
+
+    //Scenario 25
+    public static void updateAccClientConact(List<Opportunity> oppList, Map<Id,Opportunity> oldValueMap){
+        Set<Id> newOppId = new Set<Id>();
+        for(Opportunity opp : oppList){
+            Opportunity oldOppValue = oldValueMap.get(opp.Id);
+            if(opp.Client_Contact__c != oldOppValue.Client_Contact__c){
+                newOppId.add(opp.Id);
+            }
+        }
+        if(newOppId.isEmpty())return;
+
+        List<Account> accToUpdate = new List<Account>();
+        for(Opportunity opp : [SELECT Id, AccountId, Client_Contact__c FROM Opportunity WHERE Id IN : newOppId]){
+            accToUpdate.add(new Account(Id = opp.AccountId, Opp_Client_Contact__c = opp.Client_Contact__c));            
+        }
+        if(!accToUpdate.isEmpty()){
+            update accToUpdate;
+        }
+    }
+
+    //Scenario 33
+    public static void setMinAndMaxDate(List<Opportunity> oppList){
+        Set<Id> accIdSet = new Set<Id>();
+        for(Opportunity opp : oppList){
+            if( opp.AccountId != null){
+                accIdSet.add(opp.AccountId);
+            }
+        }
+        if(accIdSet.isEmpty())return;
+
+        List<AggregateResult> oppResult = [SELECT AccountId, MIN(CloseDate) minCloseDate, MAX(CloseDate) maxCloseDate FROM Opportunity WHERE AccountId IN : accIdSet GROUP BY AccountId];
+        List<Account> accList = new List<Account>();
+
+        for(AggregateResult ar : oppResult){
+            accList.add(new Account(Id = (Id)ar.get('AccountId'), Min_Opp_Date__c = (Date)ar.get('minCloseDate'), Max_Opp_Date__c = (Date)ar.get('maxCloseDate')));
+        }
+        if(!accList.isEmpty()){
+            update accList;
+        }
+    }
+
+    //Scenario 34
+    public static void setAccPicklistValues(List<Opportunity> oppList){
+        Set<Id> accountIds = new Set<Id>();
+        for(Opportunity opp : oppList){
+            if(opp.AccountId != null){
+                accountIds.add(opp.AccountId);
+            }
+        }
+        if(accountIds.isEmpty()) return;
+
+        // Query all related Opportunities for each Account
+        Map<Id, List<String>> accountToValues = new Map<Id, List<String>>();
+        for(Opportunity opp : [
+            SELECT AccountId, Sync_Values__c
+            FROM Opportunity
+            WHERE AccountId IN :accountIds AND Sync_Values__c != null
+        ]) {
+            if(!accountToValues.containsKey(opp.AccountId)){
+                accountToValues.put(opp.AccountId, new List<String>());
+            }
+            List<String> existing = accountToValues.get(opp.AccountId);
+            existing.addAll(opp.Sync_Values__c.split(';'));
+        }
+
+        List<Account> accountsToUpdate = new List<Account>();
+        for(Id accId : accountToValues.keySet()){
+            Set<String> uniqueValues = new Set<String>(accountToValues.get(accId));
+            accountsToUpdate.add(new Account(
+                Id = accId,
+                Synced_Values__c = String.join(new List<String>(uniqueValues), ';')
+            ));
+        }
+
+        if(!accountsToUpdate.isEmpty()){
+            update accountsToUpdate;
+        }
+    }
 }

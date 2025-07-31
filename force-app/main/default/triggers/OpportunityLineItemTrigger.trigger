@@ -1,10 +1,18 @@
-trigger OpportunityLineItemTrigger on OpportunityLineItem (after insert, after update, after delete, after undelete) {
+trigger OpportunityLineItemTrigger on OpportunityLineItem (before insert, before update, after insert, after update, after delete, after undelete) {
+    if(Trigger.isBefore && Trigger.isInsert){
+        OpportunityLineItemTriggerHandler.insertSerialNo(Trigger.new);//Scenario 26
+        OpportunityLineItemTriggerHandler.validateProductMatch(Trigger.new);//Scenario 32
+    }
+    if(Trigger.isBefore && Trigger.isUpdate){
+        OpportunityLineItemTriggerHandler.validateProductMatch(Trigger.new);//Scenario 32
+    }
     if(Trigger.isAfter && Trigger.isInsert){
-        OpportunityLineItemTriggerHandler.createAsset(Trigger.new);
+        OpportunityLineItemTriggerHandler.createAsset(Trigger.new);//Scenario 8,23
         OpportunityLineItemTriggerHandler.sendMail(Trigger.new);// Scenario 10
         OpportunityLineItemTriggerHandler.setProductQty(Trigger.new);//Scenario 12
         OpportunityLineItemTriggerHandler.insertQuotation(Trigger.new);//Scenario 18
         OpportunityLineItemTriggerHandler.populateTotalQTY(Trigger.new);//Scenario 20
+        OpportunityLineItemTriggerHandler.handleQuantityDeduction(Trigger.new);//Scenario 28
     }
     if(Trigger.isAfter && Trigger.isUpdate){
         OpportunityLineItemTriggerHandler.populateTotalQTY(Trigger.new);//Scenario 20

@@ -1,4 +1,5 @@
 public with sharing class OpportunityLineItemTriggerHandler {
+    //Scenario 8,23
     public static void createAsset(List<OpportunityLineItem> newOppLineItemList) {
         // Map to group OLIs by OpportunityId
         Map<Id, List<OpportunityLineItem>> newMap = new Map<Id, List<OpportunityLineItem>>();
@@ -207,6 +208,101 @@ public with sharing class OpportunityLineItemTriggerHandler {
 
         if(!accToUpdate.isEmpty()){
             update accToUpdate;
+        }
+    }
+
+    //Scenario 26
+    public static void insertSerialNo(List<OpportunityLineItem> oliList){
+        Decimal lastSerialNo = 0;
+        List<OpportunityLineItem> olList = [SELECT Id, Serial_No__c FROM OpportunityLineItem ORDER BY Serial_No__c ASC];
+        if (!olList.isEmpty()) {
+            lastSerialNo = (Decimal)olList[olList.size()-1].Serial_No__c != null ? olList[olList.size()-1].Serial_No__c : 0;
+        }
+
+        for (OpportunityLineItem oli : oliList) {
+            lastSerialNo += 1;
+            oli.Serial_No__c = lastSerialNo;
+        }
+    }
+
+    //Scenario 28
+    public static void handleQuantityDeduction(List<OpportunityLineItem> oliList) {
+        Set<Id> productIds = new Set<Id>();
+
+        // Collect product ids
+        for (OpportunityLineItem oli : oliList) {
+            if (oli.PricebookEntryId != null) {
+                productIds.add(oli.PricebookEntry.Product2Id);
+            }
+        }
+
+        // Query Product2s
+        Map<Id, Product2> productMap = new Map<Id, Product2>(
+            [SELECT Id, Total_Quantity__c FROM Product2 WHERE Id IN :productIds]
+        );
+
+        // Track quantities per product
+        Map<Id, Decimal> quantityToDeductMap = new Map<Id, Decimal>();
+
+        for (OpportunityLineItem oli : oliList) {
+            Id productId = oli.PricebookEntry.Product2Id;
+
+            if (!quantityToDeductMap.containsKey(productId)) {
+                quantityToDeductMap.put(productId, 0);
+            }
+
+            quantityToDeductMap.put(productId, quantityToDeductMap.get(productId) + oli.Quantity);
+        }
+
+        // Update product quantities
+        List<Product2> productsToUpdate = new List<Product2>();
+
+        for (Id prodId : quantityToDeductMap.keySet()) {
+            if (productMap.containsKey(prodId)) {
+                Product2 prod = productMap.get(prodId);
+                Decimal newQty = (prod.Total_Quantity__c != null ? prod.Total_Quantity__c : 0) - quantityToDeductMap.get(prodId);
+                if (newQty < 0) newQty = 0; // prevent negative stock
+                prod.Total_Quantity__c = newQty;
+                productsToUpdate.add(prod);
+            }
+        }
+
+        if (!productsToUpdate.isEmpty()) {
+            update productsToUpdate;
+        }
+    }
+
+    //Scenario 32
+    public static void validateProductMatch(List<OpportunityLineItem> oliList) {
+        Set<Id> oppIds = new Set<Id>();
+        Set<Id> productIds = new Set<Id>();
+
+        for(OpportunityLineItem oli : oliList){
+            if(oli.OpportunityId != null) oppIds.add(oli.OpportunityId);
+            if(oli.PricebookEntryId != null) productIds.add(oli.PricebookEntryId);
+        }
+
+        Map<Id, Opportunity> oppMap = new Map<Id, Opportunity>(
+            [SELECT Id, Product_Type__c FROM Opportunity WHERE Id IN :oppIds]
+        );
+
+        Map<Id, Product2> prodMap = new Map<Id, Product2>();
+        for(PricebookEntry pbe : [
+            SELECT Id, Product2Id, Product2.Family FROM PricebookEntry
+            WHERE Id IN :productIds
+        ]){
+            prodMap.put(pbe.Id, new Product2(Id = pbe.Product2Id, Family = pbe.Product2.Family));
+        }
+
+        for(OpportunityLineItem oli : oliList){
+            Opportunity opp = oppMap.get(oli.OpportunityId);
+            Product2 prod = prodMap.get(oli.PricebookEntryId);
+
+            if(opp != null && prod != null){
+                if(opp.Product_Type__c != prod.Family){
+                    oli.addError('Product Family (' + prod.Family + ') must match Opportunity Product Type (' + opp.Product_Type__c + ').');
+                }
+            }
         }
     }
 }
